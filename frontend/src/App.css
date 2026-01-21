@@ -1,0 +1,5 @@
+/* App base styles */
+.App{min-height:100vh;display:flex;flex-direction:column}
+
+/* Small helpers that complement responsive.css */
+.content{flex:1;padding:1rem 0}
