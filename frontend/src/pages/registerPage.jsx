@@ -124,15 +124,14 @@ export default function RegisterPage() {
     <div className="w-full h-full bg-[url('/background.jpg')] flex bg-center bg-cover bg-no-repeat">
       <div className="w-[50%] h-full flex flex-col justify-center items-center">
         <img
-          src="/logo.png"
-          alt="logo"
+
           className="w-[200px] h-[200px] object-cover"
         />
         <h1
-          className="text-[50px] text-golden text-shadow-2xs text-shadow-accent font-bold ">Plug In. Power Up. Play Hard
+          className="text-[50px] text-golden text-shadow-2xs text-shadow-accent font-bold ">
         </h1>
         <p
-          className="text-white italic text-[30px]">Your Ulitimate Destination for Gaming Gear</p>
+          className="text-white italic text-[30px]"></p>
 
       </div>
       <div className="w-[50%] h-full flex justify-center items-center ">
@@ -268,8 +267,8 @@ export default function RegisterPage() {
               transition={{ delay: 0.8, duration: 0.5 }}
               className="mt-[20px] text-white"
             >
-              <span>Do you have an account? </span>
-              <Link to="/login" className="text-golden font-bold hover:underline">Login</Link>
+              <span className="text-black">Do you have an account? </span>
+              <Link to="/login" className="text-blue-500 font-bold hover:underline">Login</Link>
             </motion.div>
           )}
 

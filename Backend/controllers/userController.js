@@ -24,6 +24,19 @@ export async function createUser(req, res) {
     try {
         const data = req.body;
 
+        // Validate Password
+        const { validatePassword } = await import("../utils/passwordValidator.js");
+        const validationResult = validatePassword(data.password, {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email
+        });
+
+        if (!validationResult.isValid) {
+            return res.status(400).json({ message: validationResult.message });
+        }
+
+
         // check if email exists
         const existingUser = await User.findOne({ email: data.email });
         if (existingUser) {
@@ -396,6 +409,26 @@ export async function validateOTPAndUpdatePassword(req, res) {
         const otpCode = req.body.otp;
         const newPassword = req.body.newPassword;
         const email = req.body.email;
+
+        // Validate Password
+        const { validatePassword } = await import("../utils/passwordValidator.js");
+        // We might not have user details here easily unless we fetch user first.
+        // Let's fetch user first to get details for validation check.
+        const user = await User.findOne({ email: email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const validationResult = validatePassword(newPassword, {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+        });
+
+        if (!validationResult.isValid) {
+            return res.status(400).json({ message: validationResult.message });
+        }
 
         const otp = await Otp.findOne({ email: email, otp: otpCode });
         if (!otp) {

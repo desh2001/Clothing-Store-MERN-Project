@@ -115,15 +115,15 @@ export default function LoginPage() {
     <div className="w-full h-full bg-[url('/background.jpg')] flex bg-center bg-cover bg-no-repeat">
       <div className="w-[50%] h-full flex flex-col justify-center items-center">
         <img
-          src="/logo.png"
-          alt="logo"
+
+
           className="w-[200px] h-[200px] object-cover"
         />
         <h1
-          className="text-[50px] text-white font-bold ">Elevate Your Style.
+          className="text-[50px] text-white font-bold ">
         </h1>
         <p
-          className="text-blue-100 italic text-[30px]">Your Ultimate Destination for Modern Fashion</p>
+          className="text-blue-100 italic text-[30px]"></p>
 
       </div>
       <div className="w-[50%] h-full flex justify-center items-center ">
@@ -217,8 +217,8 @@ export default function LoginPage() {
             transition={{ delay: 0.6, duration: 0.5 }}
             className="mt-[20px] text-white"
           >
-            <span>Don't have an account? </span>
-            <Link to="/register" className="text-blue-200 font-bold hover:underline">Register</Link>
+            <span className="text-black">Don't have an account? </span>
+            <Link to="/register" className="text-blue-500 font-bold hover:underline">Register</Link>
           </motion.div>
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -226,7 +226,7 @@ export default function LoginPage() {
             transition={{ delay: 0.7, duration: 0.5 }}
             className="mt-[10px] text-white"
           >
-            <Link to="/forgot-password" className="text-blue-200 font-bold hover:underline">Forgot Password?</Link>
+            <Link to="/forgot-password" className="text-blue-500 font-bold hover:underline">Forgot Password?</Link>
           </motion.div>
 
         </motion.div>
