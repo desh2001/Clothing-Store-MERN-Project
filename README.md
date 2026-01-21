@@ -1,7 +1,7 @@
 
-# 💻 I-Computing Shop - Full Stack E-Commerce Solution 🛒
+# � Clothing Store - MERN Stack E-Commerce Project �️
 
-Welcome to the **I-Computing Shop**, a robust, full-featured MERN stack e-commerce platform designed for high-performance computing hardware sales. This project features a complete administrative dashboard, secure user authentication, and a seamless shopping experience. 🚀✨
+Welcome to the **Clothing Store**, a modern, full-stack e-commerce platform designed for the fashion industry. This project utilizes the **MERN stack** (MongoDB, Express.js, React, Node.js) to deliver a seamless shopping experience with premium aesthetics and robust functionality. ✨
 
 ---
 
@@ -9,120 +9,103 @@ Welcome to the **I-Computing Shop**, a robust, full-featured MERN stack e-commer
 
 ### 👤 Customer Experience
 
-* **🛍️ Product Browsing:** Explore a wide range of computing products with detailed descriptions and high-quality images.
-* **🛒 Cart Management:** Add, remove, and update products in your local shopping cart before checkout.
-* **💳 Secure Checkout:** Streamlined order placement process with customer information capture.
-* **⭐ Product Reviews:** Share feedback and rate purchased items to help other shoppers.
-* **🔐 Account Security:** Secure registration, login, and "Forgot Password" functionality with OTP verification.
+*   **� Trendy Product Catalog:** Browse a curated selection of fashion items with rich visuals and categories.
+*   **�️ Smart Cart System:** Easily manage your shopping bag and proceed to a secure checkout.
+*   **� Secure Authentication:** Sign up/Login via email or **Google** (OAuth2). Password recovery included.
+*   **⭐ Reviews & Ratings:** Read and leave feedback on products.
+*   **� Responsive & Interactive:** Built with **Tailwind CSS** and **Framer Motion** for smooth animations and mobile-perfect design.
 
 ### 🛠️ Admin Dashboard
 
-* **📦 Inventory Control:** Full CRUD operations (Create, Read, Update, Delete) for products.
-* **📋 Order Management:** Monitor and track all customer orders in real-time.
-* **👥 User Management:** Oversee registered users and maintain platform integrity.
-* **💬 Review Moderation:** Manage customer feedback directly from the admin panel.
+*   **📦 Product Management:** Add, edit, and delete clothing items including sizes, colors, and images.
+*   **👥 User Administration:** Manage registered users and roles (Admin/User).
+*   **� Order Tracking:** View and update order statuses.
 
 ---
 
-## 🏗️ Project Architecture
+## 🏗️ Tech Stack
 
-The application is built using a modern decoupled architecture:
+This project is built with the latest web technologies:
 
-1. **Backend (`/Backend`):** * **Runtime:** Node.js with Express.js.
-* **Database:** MongoDB using Mongoose for structured data modeling.
-* **Security:** JWT (JSON Web Tokens) for protected API routes and bcrypt for password hashing.
-* **Endpoints:** RESTful API for products, orders, users, and reviews.
+### **Frontend** (`/frontend`)
+*   **Framework:** React 19 + Vite ⚡
+*   **Styling:** Tailwind CSS v4 🎨
+*   **Animations:** Framer Motion 🎬
+*   **Icons:** Lucide React & React Icons
+*   **State/Routing:** React Router DOM, Custom Hooks
+*   **Notifications:** React Hot Toast
 
-
-2. **Frontend (`/frontend`):**
-* **Library:** React.js with Vite for blazing-fast performance.
-* **State Management:** Component-based architecture with custom hooks for cart and authentication.
-* **Styling:** Modern CSS with dedicated responsive design files for mobile-first compatibility.
-
-
+### **Backend** (`/backend`)
+*   **Runtime:** Node.js
+*   **Framework:** Express.js v5
+*   **Database:** MongoDB + Mongoose v8
+*   **Authentication:** JWT (JSON Web Tokens) & Google OAuth
+*   **AI Integration:** Google Generative AI (@google/generative-ai) 🤖
+*   **Email:** Nodemailer
 
 ---
 
 ## 🚀 Getting Started
 
-### 🐍 Backend Setup
+Follow these steps to run the project locally:
 
-1. Navigate to the backend folder:
+### 1️⃣ Clone the Repository
 ```bash
-cd Backend
-
+git clone <repository-url>
+cd Clothing-Store-MERN-Project
 ```
 
-
-2. Install dependencies:
+### 2️⃣ Backend Setup
+Navigate to the backend directory and install dependencies:
 ```bash
+cd backend
 npm install
-
 ```
 
+Create a `.env` file in the `backend` folder with the following variables:
+```env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+email_user=your_email@gmail.com
+email_pass=your_email_app_password
+GEMINI_API_KEY=your_gemini_api_key
+```
 
-3. Configure your `.env` file with `MONGO_URI`, `JWT_SECRET`, and email credentials.
-4. Start the server:
+Start the backend server:
 ```bash
-npm run dev
-
+npm start
 ```
 
-
-
-### 💻 Frontend Setup
-
-1. Navigate to the frontend folder:
+### 3️⃣ Frontend Setup
+Navigate to the frontend directory and install dependencies:
 ```bash
 cd frontend
-
-```
-
-
-2. Install packages:
-```bash
 npm install
-
 ```
 
+Create a `.env` file in the `frontend` folder:
+```env
+VITE_BACKEND_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
 
-3. Launch the development app:
+Start the frontend development server:
 ```bash
 npm run dev
-
 ```
 
-
-
 ---
 
-## 🧪 Technology Stack
+## � Application Workflow
 
-| Layer | Technologies |
-| --- | --- |
-| **Frontend** | React, Vite, CSS3, Lucide Icons |
-| **Backend** | Node.js, Express, JWT, Bcrypt |
-| **Database** | MongoDB, Mongoose |
-| **Media** | Cloudinary integration for image uploads |
-| **Deployment** | Vercel (Frontend), Render (Backend) |
-
----
-
-## 🤝 Contributing
-
-We welcome contributions to make the I-Computing Shop even better!
-
-1. Fork the Project.
-2. Create your Feature Branch (`git checkout -b feature/CoolFeature`).
-3. Commit your Changes (`git commit -m 'Add some CoolFeature'`).
-4. Push to the Branch (`git push origin feature/CoolFeature`).
-5. Open a Pull Request.
+1.  **User Access:** Users can browse products immediately but must log in to add items to the cart or checkout.
+2.  **Shopping:** Users select sizes/colors and add items to the cart.
+3.  **Checkout:** Secure checkout process (Integration dependent on payment gateway).
+4.  **Admin:** Admins access the dashboard to manage inventory and view sales data.
 
 ---
 
 ## 💖 Show your support
 
-Give a ⭐️ if this project helped you build your e-commerce dream! 🥂✨
-
-**Repository Link:** [https://github.com/pasindu115530/i-computing-shop-backend](https://www.google.com/search?q=https://github.com/pasindu115530/i-computing-shop-backend)
-**Liver Server** : **https://i-computing-shop-backend.vercel.app/**
+Give a ⭐️ if you like this project! Happy Coding! 🚀

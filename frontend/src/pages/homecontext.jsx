@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Monitor, Laptop, Cpu, Headphones, ArrowRight, ShieldCheck, Truck, Clock } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Truck, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // Assuming you have AuthContext for logged-in user
@@ -141,9 +141,9 @@ export default function HomeContent() {
       {/* FEATURES */}
       <div className="bg-blue-50 py-20 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-          <Feature icon={<ShieldCheck size={40} className="text-blue-600" />} title="Warranty" desc="Trusted protection." />
-          <Feature icon={<Truck size={40} className="text-blue-600" />} title="Fast Delivery" desc="Island-wide shipping." />
-          <Feature icon={<Clock size={40} className="text-blue-600" />} title="24/7 Support" desc="We are here to help." />
+          <Feature icon={<ShieldCheck size={40} className="text-blue-600" />} title="Premium Quality" desc="Crafted with the finest materials." />
+          <Feature icon={<Truck size={40} className="text-blue-600" />} title="Fast Shipping" desc="Get your new look in no time." />
+          <Feature icon={<Clock size={40} className="text-blue-600" />} title="24/7 Support" desc="Expert styling advice & support." />
         </div>
       </div>
     </div>
