@@ -50,19 +50,16 @@ export default function Header() {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.5 }}
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-                    scrolled
-                        ? "bg-white/90 backdrop-blur-md shadow-md py-3"
-                        : "bg-white py-5 shadow-sm"
-                }`}
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+                    ? "bg-white/90 backdrop-blur-md shadow-md py-3"
+                    : "bg-white py-5 shadow-sm"
+                    }`}
             >
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-                    
+
                     {/* LOGO */}
                     <Link to="/" className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-blue-900">
-                            Clothing<span className="text-blue-500">Store</span>
-                        </span>
+                        <img src="/logo.png" alt="Icon" className="h-20 w-20 object-contain" />
                     </Link>
 
                     {/* DESKTOP NAV */}
@@ -70,21 +67,19 @@ export default function Header() {
                         {navLinks.map(({ path, label }) => (
                             <Link key={path} to={path} className="relative group py-2">
                                 <span
-                                    className={`text-sm font-semibold transition ${
-                                        isActive(path)
-                                            ? "text-blue-600"
-                                            : "text-slate-600 hover:text-blue-600"
-                                    }`}
+                                    className={`text-sm font-semibold transition ${isActive(path)
+                                        ? "text-blue-600"
+                                        : "text-slate-600 hover:text-blue-600"
+                                        }`}
                                 >
                                     {label}
                                 </span>
 
                                 <span
-                                    className={`absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transition-transform origin-left ${
-                                        isActive(path)
-                                            ? "scale-x-100"
-                                            : "scale-x-0 group-hover:scale-x-100"
-                                    }`}
+                                    className={`absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transition-transform origin-left ${isActive(path)
+                                        ? "scale-x-100"
+                                        : "scale-x-0 group-hover:scale-x-100"
+                                        }`}
                                 />
                             </Link>
                         ))}

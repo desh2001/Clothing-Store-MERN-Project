@@ -42,10 +42,17 @@ export default function HomeContent() {
   }, []);
 
   return (
-    <div className="w-full flex flex-col bg-slate-50 overflow-x-hidden pt-[20px]">
+    <div className="w-full flex flex-col bg-slate-50 overflow-x-hidden mt-[-40px]">
 
       {/* HERO SECTION */}
-      <div className="w-full bg-gradient-to-r from-blue-700 to-blue-900 text-white py-20 px-6 md:px-12 relative overflow-hidden mb-10">
+      <div
+        className="w-full text-slate-900 py-60 px-6 md:px-12 relative overflow-hidden mb-10"
+        style={{
+          backgroundImage: "url('/herosection.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center"
+        }}
+      >
         <motion.div
           animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
           transition={{ duration: 20, repeat: Infinity, repeatType: "mirror" }}
@@ -58,13 +65,13 @@ export default function HomeContent() {
             transition={{ duration: 0.8 }}
             className="flex-1 space-y-6"
           >
-            <div className="inline-block bg-blue-800/50 px-4 py-1.5 rounded-full text-blue-200 text-sm font-medium border border-blue-700/50">
+            <div className="inline-block bg-blue-100 px-4 py-1.5 rounded-full text-blue-800 text-sm font-medium border border-blue-200">
               🚀 Upgrade Your Fashion Today
             </div>
             <h1 className="text-4xl md:text-7xl font-bold leading-tight">
-              Clothing <span className="text-blue-300">Store</span>
+              ELLY CLOTHING <span className="text-blue-600"></span>
             </h1>
-            <p className="text-blue-100 text-lg md:text-xl max-w-xl leading-relaxed">
+            <p className="text-slate-700 text-lg md:text-xl max-w-xl leading-relaxed">
               Experience the latest in fashion. Premium apparel, trendy outfits, and accessories tailored for your style.
             </p>
             <motion.button
@@ -82,13 +89,7 @@ export default function HomeContent() {
             transition={{ duration: 0.8 }}
             className="flex-1 flex justify-center relative"
           >
-            <motion.img
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000&auto=format&fit=crop"
-              alt="Fashion Hero"
-              className="rounded-2xl shadow-2xl border-4 border-blue-400/20 w-full max-w-lg object-cover"
-            />
+
           </motion.div>
         </div>
       </div>

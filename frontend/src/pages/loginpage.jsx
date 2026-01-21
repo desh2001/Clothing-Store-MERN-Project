@@ -112,7 +112,7 @@ export default function LoginPage() {
 
 
   return (
-    <div className="w-full h-full bg-gradient-to-r from-blue-700 to-blue-900 flex bg-center bg-cover bg-no-repeat">
+    <div className="w-full h-full bg-[url('/background.jpg')] flex bg-center bg-cover bg-no-repeat">
       <div className="w-[50%] h-full flex flex-col justify-center items-center">
         <img
           src="/logo.png"

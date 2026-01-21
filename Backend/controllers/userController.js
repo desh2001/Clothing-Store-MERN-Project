@@ -17,7 +17,8 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: "pasindu.udana.mendis@gmail.com",
         pass: process.env.GMAIL_APP_PASSWORD
-    }});
+    }
+});
 
 export async function createUser(req, res) {
     try {
@@ -26,7 +27,12 @@ export async function createUser(req, res) {
         // check if email exists
         const existingUser = await User.findOne({ email: data.email });
         if (existingUser) {
-            return res.status(400).json({ message: "Email already exists" });
+            if (existingUser.isEmailVerified) {
+                return res.status(400).json({ message: "Email already exists" });
+            } else {
+                // User exists but not verified. Delete old user to allow re-registration
+                await User.deleteOne({ email: data.email });
+            }
         }
 
         const hashedPassword = bcrypt.hashSync(data.password, 10);
@@ -37,11 +43,180 @@ export async function createUser(req, res) {
             lastName: data.lastName,
             password: hashedPassword,
             role: data.role,
+            isEmailVerified: false // Explicitly set to false
         });
 
         await user.save();
 
-        res.json({ message: "User created successfully" });
+        // Remove old OTPs for the user (if any exist for this email, unlikely for new user but safe)
+        await Otp.deleteMany({ email: data.email });
+
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(`[DEBUG] Generated OTP for ${data.email}: ${otpCode}`);
+
+        // Hash OTP before saving
+        const hashedOtp = await bcrypt.hash(otpCode, 10);
+
+        // Save OTP to DB
+        const otpEntry = new Otp({
+            email: data.email,
+            otp: hashedOtp
+        });
+        await otpEntry.save();
+        console.log(`[DEBUG] Hashed OTP saved to database for ${data.email}`);
+
+        // HTML email design for Signup OTP
+        const htmlMessage = `
+            <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <h2 style="color: #1a73e8; text-align: center;">Welcome to ClothingStore!</h2>
+            <p>Hello ${data.firstName},</p>
+            <p>Thank you for registering. Please use the following code to verify your email address:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <span style="display: inline-block; font-size: 24px; font-weight: bold; letter-spacing: 4px; padding: 10px 20px; background-color: #f0f4ff; border-radius: 8px; color: #1a73e8;">
+                ${otpCode}
+                </span>
+            </div>
+            <p>This code is valid for <strong>5 minutes</strong>.</p>
+            </div>
+        `;
+
+        // Send email
+        transporter.sendMail(
+            {
+                from: "vikumdeshan2k01@gmail.com",
+                to: data.email,
+                subject: "Verify Your Email Address",
+                html: htmlMessage
+            },
+            (err, info) => {
+                if (err) {
+                    console.error("Error sending OTP email:", err);
+                    // Even if email fails, user is created but unverified.
+                    // Ideally we might rollback user creation, but keeping it simple.
+                    return res.status(500).json({
+                        message: "User created but failed to send verification email.",
+                        error: err.message
+                    });
+                } else {
+                    res.json({
+                        message: "OTP sent",
+                        email: data.email
+                    });
+                }
+            }
+        );
+
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+}
+
+
+export async function verifySignupOtp(req, res) {
+    try {
+        const { email, otp } = req.body;
+        console.log(`[DEBUG] Verifying OTP for ${email}. Received: ${otp}`);
+
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
+        }
+
+        const otpRecord = await Otp.findOne({ email });
+        console.log(`[DEBUG] OTP Record found: ${otpRecord ? "YES" : "NO"}`);
+
+        if (!otpRecord) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        // Verify OTP hash
+        const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        if (!otpRecord) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Mark user as verified
+        user.isEmailVerified = true;
+        await user.save();
+
+        // Clean up used OTP
+        await Otp.deleteMany({ email });
+
+        res.json({
+            message: "Email verified successfully. You can now login.",
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+}
+
+export async function resendSignupOtp(req, res) {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        if (user.isEmailVerified) {
+            return res.status(400).json({ message: "Email is already verified" });
+        }
+
+        // Remove old OTPs
+        await Otp.deleteMany({ email });
+
+        // Generate new OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log(`[DEBUG] Resending OTP for ${email}: ${otpCode}`);
+
+        // Hash OTP
+        const hashedOtp = await bcrypt.hash(otpCode, 10);
+
+        // Save to DB
+        const otpEntry = new Otp({
+            email,
+            otp: hashedOtp
+        });
+        await otpEntry.save();
+
+        // Send Email
+        const htmlMessage = `
+            <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <h2 style="color: #1a73e8; text-align: center;">Resend Verification Code</h2>
+            <p>Hello ${user.firstName},</p>
+            <p>Your new verification code is:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <span style="display: inline-block; font-size: 24px; font-weight: bold; letter-spacing: 4px; padding: 10px 20px; background-color: #f0f4ff; border-radius: 8px; color: #1a73e8;">
+                ${otpCode}
+                </span>
+            </div>
+            <p>This code is valid for <strong>5 minutes</strong>.</p>
+            </div>
+        `;
+
+        transporter.sendMail({
+            from: "pasindu.udana.mendis@gmail.com",
+            to: email,
+            subject: "Resend Verification Code",
+            html: htmlMessage
+        }, (err, info) => {
+            if (err) {
+                console.error("Error sending OTP email:", err);
+                return res.status(500).json({ message: "Failed to send OTP", error: err.message });
+            } else {
+                res.json({ message: "OTP resent successfully" });
+            }
+        });
 
     } catch (err) {
         res.status(500).json({ message: "Server error", error: err.message });
@@ -59,10 +234,13 @@ export async function loginUser(req, res) {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        if(user.isBlocked){
-            return  res.status(403).json({ message: "Your account has been blocked. Please contact support." });
-                  
-        }   
+        if (user.isBlocked) {
+            return res.status(403).json({ message: "Your account has been blocked. Please contact support." });
+        }
+
+        if (!user.isEmailVerified) {
+            return res.status(401).json({ message: "Please verify your email address to login." });
+        }
 
         const isPasswordCorrect = bcrypt.compareSync(password, user.password);
         if (!isPasswordCorrect) {
@@ -187,8 +365,8 @@ export async function googleLogin(req, res) {
             image: user.image,
             isBlocked: user.isBlocked
         };
-        if(user.isBlocked){
-            return  res.status(403).json({ message: "Your account has been blocked. Please contact support." });
+        if (user.isBlocked) {
+            return res.status(403).json({ message: "Your account has been blocked. Please contact support." });
         }
 
         // Generate token
@@ -212,56 +390,58 @@ export async function googleLogin(req, res) {
     }
 }
 
-export async function validateOTPAndUpdatePassword  (req, res) {
+export async function validateOTPAndUpdatePassword(req, res) {
 
-    try{
-    const otpCode = req.body.otp;
-    const newPassword = req.body.newPassword;
-    const email = req.body.email;
+    try {
+        const otpCode = req.body.otp;
+        const newPassword = req.body.newPassword;
+        const email = req.body.email;
 
-    const otp = await Otp.findOne({ email: email, otp: otpCode });
-    if (!otp) {
-        return res.status(400).json({ message: "Invalid or expired OTP" });
+        const otp = await Otp.findOne({ email: email, otp: otpCode });
+        if (!otp) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+        await User.updateOne({ email: email }, {
+            $set: { password: hashedPassword, isEmailVerified: true }
+        });
+        res.json({
+            message: "Password updated successfully"
+        })
+    } catch (err) {
+        res.status(500).json({
+            message: "failed to update",
+            error: err.message,
+        })
     }
-
-    const hashedPassword = bcrypt.hashSync(newPassword, 10);
-    
-    await User.updateOne({email:email},{
-        $set : {password: hashedPassword , isEmailVerified : true}
-    });
-    res.json({
-        message: "Password updated successfully"})
-        }catch(err){
-            res.status(500).json({
-                message: "failed to update",
-                error: err.message,})
-}
 }
 
 
 export async function sendOTP(req, res) {
-  try {
-    const email = req.params.email;
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    try {
+        const email = req.params.email;
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-    // Remove old OTPs for the user
-    await Otp.deleteMany({ email: email });
+        // Remove old OTPs for the user
+        await Otp.deleteMany({ email: email });
 
-    // Generate 6-digit OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Save OTP to DB
-    const otpEntry = new Otp({
-      email: email,
-      otp: otpCode
-    });
-    await otpEntry.save();
+        // Save OTP to DB
+        const otpEntry = new Otp({
+            email: email,
+            otp: otpCode
+        });
+        await otpEntry.save();
 
-    // HTML email design
-    const htmlMessage = `
+        // HTML email design
+        const htmlMessage = `
       <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
         <h2 style="color: #1a73e8; text-align: center;">Your OTP Code</h2>
         <p>Hello ${user.firstName || ""},</p>
@@ -277,33 +457,33 @@ export async function sendOTP(req, res) {
       </div>
     `;
 
-    // Send email
-    transporter.sendMail(
-      {
-        from: "pasindu.udana.mendis@gmail.com",
-        to: email,
-        subject: "Your OTP Code for Password Reset",
-        html: htmlMessage
-      },
-      (err, info) => {
-        if (err) {
-          console.error("Error sending OTP email:", err);
-          res.status(500).json({
-            message: "Failed to send OTP",
+        // Send email
+        transporter.sendMail(
+            {
+                from: "pasindu.udana.mendis@gmail.com",
+                to: email,
+                subject: "Your OTP Code for Password Reset",
+                html: htmlMessage
+            },
+            (err, info) => {
+                if (err) {
+                    console.error("Error sending OTP email:", err);
+                    res.status(500).json({
+                        message: "Failed to send OTP",
+                        error: err.message
+                    });
+                } else {
+                    res.json({ message: "OTP sent successfully" });
+                }
+            }
+        );
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            message: "Server error",
             error: err.message
-          });
-        } else {
-          res.json({ message: "OTP sent successfully" });
-        }
-      }
-    );
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: "Server error",
-      error: err.message
-    });
-  }
+        });
+    }
 }
 
 
@@ -321,27 +501,29 @@ export async function getAllUsers(req, res) {
 
 export async function changeBlockStatus(req, res) {
 
-    try{
-    const email = req.body.email;
-    const isBlocked = req.body.isBlocked;
-    if(req.user.email === email){
-        return res.status(400).json({ message: "You cannot block/unblock yourself" });
+    try {
+        const email = req.body.email;
+        const isBlocked = req.body.isBlocked;
+        if (req.user.email === email) {
+            return res.status(400).json({ message: "You cannot block/unblock yourself" });
 
+        }
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        await User.updateOne({ email: email }, {
+            $set: { isBlocked: isBlocked }
+        });
+        res.json({
+            message: "User block status updated successfully"
+        })
+    } catch (err) {
+        res.status(500).json({
+            message: "failed to update",
+            error: err.message,
+        })
     }
-    const user = await User.findOne({ email: email });
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-    await User.updateOne({email:email},{
-        $set : {isBlocked : isBlocked}
-    });
-    res.json({
-        message: "User block status updated successfully"})
-        }catch(err){
-            res.status(500).json({
-                message: "failed to update",
-                error: err.message,})
-}
 
 }
 

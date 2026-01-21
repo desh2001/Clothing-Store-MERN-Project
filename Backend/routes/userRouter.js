@@ -1,12 +1,12 @@
 import express from "express"
-import { changeBlockStatus, createUser, getAllUsers, googleLogin, loginUser, sendMail, sendOTP, validateOTPAndUpdatePassword } from "../controllers/userController.js"
+import { changeBlockStatus, createUser, getAllUsers, googleLogin, loginUser, resendSignupOtp, sendMail, sendOTP, validateOTPAndUpdatePassword, verifySignupOtp } from "../controllers/userController.js"
 import { getCurrentUser } from "../controllers/userController.js"
 import { verifyToken, requireAuth } from "../middleware/auth.js"
 
 const userRouter = express.Router()
 
-userRouter.post("/",createUser)
-userRouter.post("/login",loginUser)
+userRouter.post("/", createUser)
+userRouter.post("/login", loginUser)
 
 // GET current authenticated user
 userRouter.get("/", verifyToken, (req, res) => {
@@ -15,9 +15,11 @@ userRouter.get("/", verifyToken, (req, res) => {
 	return res.json(req.user);
 })
 
-userRouter.post("/googlelogin",googleLogin)
+userRouter.post("/googlelogin", googleLogin)
 userRouter.post("/send-otp/:email", sendOTP)
-userRouter.post("/validate-otp" , validateOTPAndUpdatePassword)
+userRouter.post("/validate-otp", validateOTPAndUpdatePassword)
+userRouter.post("/verify-signup-otp", verifySignupOtp)
+userRouter.post("/resend-otp", resendSignupOtp)
 userRouter.get("/all", verifyToken, getAllUsers)
 userRouter.put("/block", verifyToken, changeBlockStatus)
 userRouter.post("/sendmail/", sendMail)

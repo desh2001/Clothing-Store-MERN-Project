@@ -1,5 +1,5 @@
 
-# � Clothing Store - MERN Stack E-Commerce Project �️
+# Clothing Store - MERN Stack E-Commerce Project
 
 Welcome to the **Clothing Store**, a modern, full-stack e-commerce platform designed for the fashion industry. This project utilizes the **MERN stack** (MongoDB, Express.js, React, Node.js) to deliver a seamless shopping experience with premium aesthetics and robust functionality. ✨
 
