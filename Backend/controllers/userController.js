@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: "pasindu.udana.mendis@gmail.com",
+        user: "vikumdeshan2k01@gmail.com",
         pass: process.env.GMAIL_APP_PASSWORD
     }
 });
@@ -69,7 +69,7 @@ export async function createUser(req, res) {
         // HTML email design for Signup OTP
         const htmlMessage = `
             <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
-            <h2 style="color: #1a73e8; text-align: center;">Welcome to ClothingStore!</h2>
+            <h2 style="color: #1a73e8; text-align: center;">Welcome to Elly Clothing!</h2>
             <p>Hello ${data.firstName},</p>
             <p>Thank you for registering. Please use the following code to verify your email address:</p>
             <div style="text-align: center; margin: 30px 0;">
@@ -205,7 +205,7 @@ export async function resendSignupOtp(req, res) {
         `;
 
         transporter.sendMail({
-            from: "pasindu.udana.mendis@gmail.com",
+            from: "vikumdeshan2k01@gmail.com",
             to: email,
             subject: "Resend Verification Code",
             html: htmlMessage
@@ -460,7 +460,7 @@ export async function sendOTP(req, res) {
         // Send email
         transporter.sendMail(
             {
-                from: "pasindu.udana.mendis@gmail.com",
+                from: "vikumdeshan2k01@gmail.com",
                 to: email,
                 subject: "Your OTP Code for Password Reset",
                 html: htmlMessage
@@ -533,7 +533,7 @@ export async function sendMail(req, res) {
 
         const mailOptions = {
             from: `"${firstName} ${lastName}" <${email}>`, // shows sender name
-            to: "pasindu.udana.mendis@gmail.com",         // your Gmail
+            to: "vikumdeshan2k01@gmail.com",         // your Gmail
             subject: "New Contact Form Submission",
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
