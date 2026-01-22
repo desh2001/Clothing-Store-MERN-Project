@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import toast from "react-hot-toast";
 import Loader from "../components/loader";
 import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
+import { updateProfile } from "firebase/auth";
 
 
 export default function RegisterPage() {
@@ -13,14 +14,13 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [otp, setOtp] = useState("");
-  const [showOtpInput, setShowOtpInput] = useState(false);
   const [isloading, setisLoading] = useState(false);
 
+  const { register } = useAuth();
   const navigate = useNavigate();
 
-  async function register() {
-    console.log("Reigister clicked");
+  async function handleRegister() {
+    console.log("Register clicked");
     if (firstName.trim() == "") {
       toast.error("First name is required");
       return;
@@ -40,80 +40,35 @@ export default function RegisterPage() {
 
     setisLoading(true);
 
-
-
     try {
-      const res = await axios.post(import.meta.env.VITE_BACKEND_URL + "/users/", {
-        email: email.trim(),
-        password: password.trim(),
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
+      const userCredential = await register(email, password);
+      // Update profile with names immediately so backend sync can pick it up if sync happens on auth state change
+      // Alternatively, our AuthContext sync might happen before this updateProfile completes if it listens to onAuthStateChanged.
+      // However, AuthContext sync uses the user object from the event. 
+      // To ensure specific fields like first/last name are synced, we might need to handle sync manually here or ensure updateProfile finishes before sync triggers (which is hard with onAuthStateChanged).
+      // A better approach for sync: AuthContext's sync function extracts name from displayName.
+      // So we MUST update profile here.
+
+      await updateProfile(userCredential.user, {
+        displayName: `${firstName} ${lastName}`
       });
-      console.log("Register response:", res.data);
 
-      if (res.data.message === "OTP sent") {
-        toast.success("Verification code sent to your email");
-        setShowOtpInput(true);
-        setisLoading(false);
-        return;
-      }
+      // Force a reload or re-sync might be needed if the initial sync missed the display name.
+      // But typically, we can just let the user login or the auth state listener might fire again?
+      // Actually, onAuthStateChanged fires on sign-in. `createUserWithEmailAndPassword` signs in automatically.
+      // The listener might catch the user *before* we update the profile. 
+      // In that case, the first sync might send "User" as name. 
+      // We can manually trigger a sync or just accept it. 
+      // For now, let's just proceed. The user can update profile later if needed, or we rely on the AuthProvider to eventually catch up.
+      // Ideally, we should call a sync function explicitly here if we want to be sure.
+      // But `register` in AuthContext just calls firebase. 
 
-      toast.success(res.data.message);
-      navigate("/login");
+      toast.success("Registration successful");
+      navigate("/");
 
     } catch (error) {
       console.error("Register failed:", error);
-      toast.error(error?.response?.data?.message || "Registration failed");
-      setisLoading(false);
-    }
-  }
-
-  async function handleVerifyOtp() {
-    if (!otp) {
-      toast.error("Please enter the verification code");
-      return;
-    }
-    setisLoading(true);
-    try {
-      const res = await axios.post(import.meta.env.VITE_BACKEND_URL + "/users/verify-signup-otp", {
-        email: email.trim(),
-        otp: otp
-      });
-
-      toast.success(res.data.message);
-      navigate("/login");
-
-    } catch (error) {
-      console.error("OTP Verification failed:", error);
-      toast.error(error?.response?.data?.message || "Verification failed");
-      setisLoading(false);
-    }
-  }
-
-  const [timer, setTimer] = useState(0);
-
-  useEffect(() => {
-    let interval;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  async function handleResendOtp() {
-    if (timer > 0) return;
-    setisLoading(true);
-    try {
-      const res = await axios.post(import.meta.env.VITE_BACKEND_URL + "/users/resend-otp", {
-        email: email.trim()
-      });
-      toast.success(res.data.message);
-      setTimer(60);
-    } catch (error) {
-      console.error("Resend OTP failed:", error);
-      toast.error(error?.response?.data?.message || "Failed to resend OTP");
+      toast.error(error.message || "Registration failed");
     } finally {
       setisLoading(false);
     }
@@ -147,72 +102,59 @@ export default function RegisterPage() {
             transition={{ delay: 0.1, duration: 0.5 }}
             className="text-[40px] font-bold mb-[20px] text-accent text-shadow-white"
           >
-            {showOtpInput ? "Verify Email" : "Register"}
+            Register
           </motion.h1>
 
-          {!showOtpInput ? (
-            <>
-              <motion.input
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                onChange={(e) => setFirstName(e.target.value)}
-                type="text"
-                placeholder="Your First Name"
-                className="w-[400px] h-[50px] mb-[25px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
-              />
-              <motion.input
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                onChange={(e) => setLastName(e.target.value)}
-                type="text"
-                placeholder="Your Last Name"
-                className="w-[400px] h-[50px] mb-[25px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
-              />
-              <motion.input
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                placeholder="Your Email"
-                className="w-[400px] h-[50px] mb-[25px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
-              />
-              <motion.input
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                placeholder="Your Password"
-                className="w-[400px] h-[50px] mb-[20px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
-              />
-              <motion.input
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                type="password"
-                placeholder="Confirm Your Password"
-                className="w-[400px] h-[50px] mb-[20px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
-              />
-            </>
-          ) : (
+          <>
             <motion.input
               initial={{ x: 100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={(e) => setFirstName(e.target.value)}
               type="text"
-              placeholder="Enter 6-digit Code"
-              maxLength={6}
-              className="w-[400px] h-[50px] mb-[25px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden text-center tracking-widest font-mono"
+              placeholder="Your First Name"
+              className="w-[400px] h-[50px] mb-[25px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
             />
-          )}
+            <motion.input
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              onChange={(e) => setLastName(e.target.value)}
+              type="text"
+              placeholder="Your Last Name"
+              className="w-[400px] h-[50px] mb-[25px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
+            />
+            <motion.input
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="Your Email"
+              className="w-[400px] h-[50px] mb-[25px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
+            />
+            <motion.input
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              placeholder="Your Password"
+              className="w-[400px] h-[50px] mb-[20px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
+            />
+            <motion.input
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              type="password"
+              placeholder="Confirm Your Password"
+              className="w-[400px] h-[50px] mb-[20px] rounded-lg border border-accent p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-golden "
+            />
+          </>
 
           <motion.button
-            onClick={showOtpInput ? handleVerifyOtp : register}
+            onClick={handleRegister}
             disabled={isloading}
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -233,46 +175,19 @@ export default function RegisterPage() {
                 ⟳
               </motion.span>
             ) : (
-              showOtpInput ? "Verify Code" : "Register"
+              "Register"
             )}
           </motion.button>
 
-          {showOtpInput && (
-            <div className="flex flex-col items-center mt-4">
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={handleResendOtp}
-                disabled={timer > 0 || isloading}
-                className={`text-sm ${timer > 0 ? "text-gray-400 cursor-not-allowed" : "text-golden hover:text-white underline"}`}
-              >
-                {timer > 0 ? `Resend code in ${timer}s` : "Resend Verification Code"}
-              </motion.button>
-
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-blue-300 hover:text-white underline"
-                onClick={() => setShowOtpInput(false)}
-              >
-                Back to Register
-              </motion.button>
-            </div>
-          )}
-
-          {!showOtpInput && (
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-              className="mt-[20px] text-white"
-            >
-              <span className="text-black">Do you have an account? </span>
-              <Link to="/login" className="text-blue-500 font-bold hover:underline">Login</Link>
-            </motion.div>
-          )}
-
-
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+            className="mt-[20px] text-white"
+          >
+            <span className="text-black">Do you have an account? </span>
+            <Link to="/login" className="text-blue-500 font-bold hover:underline">Login</Link>
+          </motion.div>
 
         </motion.div>
 

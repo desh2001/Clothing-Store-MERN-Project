@@ -604,3 +604,52 @@ export async function sendMail(req, res) {
         });
     }
 }
+
+export async function firebaseSync(req, res) {
+    try {
+        const { email, uid, firstName, lastName, photoURL } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            user = new User({
+                email,
+                firstName: firstName || "User",
+                lastName: lastName || "",
+                image: photoURL || "/default.jpg",
+                password: "firebase_user", // Placeholder
+                isEmailVerified: true,
+                role: "customer"
+            });
+            await user.save();
+        }
+
+        const payload = {
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            isEmailVerified: user.isEmailVerified,
+            image: user.image,
+            id: user._id
+        };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+            expiresIn: "150h",
+        });
+
+        res.json({
+            message: "Sync successful",
+            token,
+            user: payload
+        });
+
+    } catch (err) {
+        console.error("Firebase sync error:", err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+}

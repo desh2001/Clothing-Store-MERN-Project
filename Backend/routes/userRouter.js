@@ -1,5 +1,5 @@
 import express from "express"
-import { changeBlockStatus, createUser, getAllUsers, googleLogin, loginUser, resendSignupOtp, sendMail, sendOTP, validateOTPAndUpdatePassword, verifySignupOtp } from "../controllers/userController.js"
+import { changeBlockStatus, createUser, getAllUsers, googleLogin, loginUser, resendSignupOtp, sendMail, sendOTP, validateOTPAndUpdatePassword, verifySignupOtp, firebaseSync } from "../controllers/userController.js"
 import { getCurrentUser } from "../controllers/userController.js"
 import { verifyToken, requireAuth } from "../middleware/auth.js"
 
@@ -16,6 +16,7 @@ userRouter.get("/", verifyToken, (req, res) => {
 })
 
 userRouter.post("/googlelogin", googleLogin)
+userRouter.post("/firebase-sync", firebaseSync)
 userRouter.post("/send-otp/:email", sendOTP)
 userRouter.post("/validate-otp", validateOTPAndUpdatePassword)
 userRouter.post("/verify-signup-otp", verifySignupOtp)

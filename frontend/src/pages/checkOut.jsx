@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addCart, getCart, getCartTotal } from "../lib/cart";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa6";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 export default function Checkout() {
     const location = useLocation();
@@ -14,6 +15,15 @@ export default function Checkout() {
     const [note, setNote] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { user, loading: authLoading } = useAuth();
+
+    // Pre-fill name if user is logged in and name is empty
+    useEffect(() => {
+        if (user && !name) {
+
+            setName(`${user.firstName} ${user.lastName}`);
+        }
+    }, [user]);
 
     // Redirect if cart is empty
     if (!location.state || cart.length === 0) {
@@ -24,10 +34,18 @@ export default function Checkout() {
     const formatCurrency = (v) => `LKR.${safe(v).toFixed(2)}`;
 
     async function submitOrder() {
+        if (authLoading) return; // Wait for auth check
+
+        if (!user) {
+            toast.error("You must be logged in to place an order!");
+            navigate("/login");
+            return;
+        }
+
         const token = localStorage.getItem("token");
-        console.log("Submitting order with token:", token);
         if (!token) {
-            toast.error("You must be logged in!");
+            // Should not happen if user object exists, but safety check
+            toast.error("Authentication error. Please login again.");
             navigate("/login");
             return;
         }
@@ -40,7 +58,6 @@ export default function Checkout() {
         try {
             setLoading(true);
 
-            const token = localStorage.getItem("token");
             const payload = {
                 items: cart.map((i) => ({
                     productID: i.productID,
@@ -213,9 +230,10 @@ export default function Checkout() {
 
                     <button
                         onClick={submitOrder}
-                        disabled={loading}
+                        disabled={loading || authLoading}
                         className="w-full py-3 bg-accent text-white rounded-md 
                                    disabled:opacity-60"
+                        title={!user ? "Please login to place order" : ""}
                     >
                         {loading ? "Placing Order..." : "Order Now"}
                     </button>
