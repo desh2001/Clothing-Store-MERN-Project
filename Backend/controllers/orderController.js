@@ -24,12 +24,22 @@ export async function createOrder(req, res) {
         let total = 0
 
 
+
         // Validate that items is an array to prevent DoS attacks
         if (!Array.isArray(req.body.items)) {
             return res.status(400).json({ message: "Items must be an array" });
         }
 
+        // Prevent huge payload DoS
+        if (req.body.items.length > 100) {
+            return res.status(400).json({ message: "Too many items in order (max 100)" });
+        }
+
         for (let i = 0; i < req.body.items.length; i++) {
+            if (!req.body.items[i] || !req.body.items[i].productID) {
+                return res.status(400).json({ message: `Invalid item structure at index ${i}` });
+            }
+
             const product = await Product.findOne({
                 productID: req.body.items[i].productID
             })
