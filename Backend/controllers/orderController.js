@@ -30,29 +30,32 @@ export async function createOrder(req, res) {
             return res.status(400).json({ message: "Items must be an array" });
         }
 
+
+        const inputItems = req.body.items;
+
         // Prevent huge payload DoS
-        if (req.body.items.length > 100) {
+        if (inputItems.length > 100) {
             return res.status(400).json({ message: "Too many items in order (max 100)" });
         }
 
-        for (let i = 0; i < req.body.items.length; i++) {
-            if (!req.body.items[i] || !req.body.items[i].productID) {
+        for (let i = 0; i < inputItems.length; i++) {
+            if (!inputItems[i] || !inputItems[i].productID) {
                 return res.status(400).json({ message: `Invalid item structure at index ${i}` });
             }
 
             const product = await Product.findOne({
-                productID: req.body.items[i].productID
+                productID: inputItems[i].productID
             })
 
             if (product == null) {
                 return res.status(400).json({
-                    message: `Product with ID ${req.body.items[i].productID}not found`
+                    message: `Product with ID ${inputItems[i].productID}not found`
                 })
             }
 
-            if (product.stock < req.body.items[i].quantity) {
+            if (product.stock < inputItems[i].quantity) {
                 return res.status(400).json({
-                    message: `only ${product.stock} items available in stock for product ID ${req.body.items[i].productID} `
+                    message: `only ${product.stock} items available in stock for product ID ${inputItems[i].productID} `
                 })
             }
 
@@ -60,10 +63,10 @@ export async function createOrder(req, res) {
                 productID: product.productID,
                 name: product.name,
                 price: product.price,
-                quantity: req.body.items[i].quantity,
+                quantity: inputItems[i].quantity,
                 image: product.images[0]
             });
-            total += product.price * req.body.items[i].quantity;
+            total += product.price * inputItems[i].quantity;
 
         }
         let name = req.body.name;
@@ -83,10 +86,10 @@ export async function createOrder(req, res) {
 
         await newOrder.save();
 
-        for (let i = 0; i < req.body.items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
             await Product.updateOne(
-                { productID: req.body.items[i].productID },
-                { $inc: { stock: -req.body.items[i].quantity } })
+                { productID: items[i].productID },
+                { $inc: { stock: -items[i].quantity } })
         }
 
         return res.json({
