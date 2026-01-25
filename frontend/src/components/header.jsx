@@ -87,9 +87,9 @@ export default function Header() {
 
                     {/* ICONS */}
                     <div className="flex items-center gap-5">
-                        <button className="hidden sm:block text-slate-500 hover:text-blue-600">
+                        {/* <button className="hidden sm:block text-slate-500 hover:text-blue-600">
                             <Search size={20} />
-                        </button>
+                        </button> */}
 
                         <div className="hidden md:block">
                             <UserData />

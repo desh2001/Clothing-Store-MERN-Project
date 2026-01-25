@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: "vikumdeshan2k01@gmail.com",
+        user: process.env.ADMIN_EMAIL,
         pass: process.env.GMAIL_APP_PASSWORD
     }
 });
@@ -97,7 +97,7 @@ export async function createUser(req, res) {
         // Send email
         transporter.sendMail(
             {
-                from: "vikumdeshan2k01@gmail.com",
+                from: process.env.ADMIN_EMAIL,
                 to: data.email,
                 subject: "Verify Your Email Address",
                 html: htmlMessage
@@ -218,7 +218,7 @@ export async function resendSignupOtp(req, res) {
         `;
 
         transporter.sendMail({
-            from: "vikumdeshan2k01@gmail.com",
+            from: process.env.ADMIN_EMAIL,
             to: email,
             subject: "Resend Verification Code",
             html: htmlMessage
@@ -493,7 +493,7 @@ export async function sendOTP(req, res) {
         // Send email
         transporter.sendMail(
             {
-                from: "vikumdeshan2k01@gmail.com",
+                from: process.env.ADMIN_EMAIL,
                 to: email,
                 subject: "Your OTP Code for Password Reset",
                 html: htmlMessage
@@ -566,7 +566,7 @@ export async function sendMail(req, res) {
 
         const mailOptions = {
             from: `"${firstName} ${lastName}" <${email}>`, // shows sender name
-            to: "vikumdeshan2k01@gmail.com",         // your Gmail
+            to: process.env.ADMIN_EMAIL,         // your Gmail
             subject: "New Contact Form Submission",
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
