@@ -86,11 +86,11 @@ export default function ProductOverview() {
                         <div className="flex items-center gap-4">
                             {product.labelledPrice && product.labelledPrice > product.price && (
                                 <span className="text-xl text-gray-400 line-through">
-                                    ${product.labelledPrice.toFixed(2)}
+                                    Rs.{product.labelledPrice.toFixed(2)}
                                 </span>
                             )}
                             <span className="text-4xl font-bold text-blue-600">
-                                ${product.price.toFixed(2)}
+                                Rs.{product.price.toFixed(2)}
                             </span>
                         </div>
 
