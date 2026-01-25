@@ -1,18 +1,18 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Router, Routes } from "react-router-dom";
 import Home from "./pages/homepage";
 import Admin from "./pages/adminpage";
 import Register from "./pages/registerPage";
 import Login from "./pages/loginpage";
 import './App.css'
 import { Toaster } from "react-hot-toast";
-import { AuthProvider } from "./context/AuthContext";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import ForgotPasswordpage from "./pages/forgotPasswordpage";
 import ReviewAddPage from "./pages/reviewAddPage.jsx";
 
 
 function App() {
   return (
-    <AuthProvider>
+    <GoogleOAuthProvider clientId="903023338138-8sphst1m33l8ppcl1thmc5pqab3rlmtu.apps.googleusercontent.com">
       <BrowserRouter>
         <Toaster position="top-right" />
         <div className="w-screen h-screen bg-primary text-secondary    ">
@@ -27,7 +27,7 @@ function App() {
 
         </div>
       </BrowserRouter>
-    </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

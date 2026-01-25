@@ -1,33 +1,48 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
 export default function UserData() {
-    const { user, logout } = useAuth();
+    const [user, setUser] = useState(null);
     const [openMenu, setOpenMenu] = useState(false);
     const navigate = useNavigate();
 
-    const handleLogout = async () => {
-        await logout();
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            axios
+                .get(import.meta.env.VITE_BACKEND_URL + "/users/", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+                .then((res) => setUser(res.data))
+                .catch((err) => {
+                    console.error("User fetch error:", err);
+                    setUser(null);
+                });
+        }
+    }, []);
+
+    const handleLogout = () => {
         localStorage.removeItem("token");
-        localStorage.setItem("cart", JSON.stringify([]));
         navigate("/login");
+        localStorage.setItem("cart", JSON.stringify([]));
+
     };
 
     return (
         <div className="relative flex items-center">
             {user ? (
                 <div>
-                    <div
+                    <div 
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={() => setOpenMenu(!openMenu)}
                     >
-                        {user.image && (
-                            <img
-                                src={user.image}
-                                className="w-10 h-10 rounded-full object-cover text-2xl border shadow-sm"
-                            />
-                        )}
+                        <img 
+                            src={user.image}
+                            className="w-10 h-10 rounded-full object-cover text-2xl border shadow-sm"
+                        />
                         <p className="text-2xl text-amber-50">{user.firstName}</p>
                     </div>
 

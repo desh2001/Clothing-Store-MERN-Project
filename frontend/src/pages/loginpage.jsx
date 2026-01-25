@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import toast from "react-hot-toast";
 import Loader from "../components/loader";
 import { FaGoogle } from "react-icons/fa";
+import { useGoogleLogin } from "@react-oauth/google";
 import { motion } from "framer-motion";
-import { useAuth } from "../context/AuthContext";
 
 
 export default function LoginPage() {
@@ -12,71 +13,99 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login, googleLogin, user } = useAuth();
+  const googleLogin = useGoogleLogin({
+    onSuccess: (response) => {
+      axios.post(import.meta.env.VITE_BACKEND_URL + "/users/googlelogin", {
+        access_token: response.access_token
+      })
+        .then((res) => {
+          console.log("Google login response:", res.data);
+          toast.success(res.data.message);
+          //check block status
+          if (res.data.isBlocked) {
+            toast.error("Your account has been blocked. Please contact support.");
+            setIsLoading(false);
+            return;
+          }
+          // SAVE TOKEN AND USER
+          localStorage.setItem("token", res.data.token);
+
+          // Decode token to get user info
+          try {
+            const payload = JSON.parse(atob(res.data.token.split('.')[1]));
+            localStorage.setItem("user", JSON.stringify(payload));
+          } catch (e) {
+            console.warn("Failed to decode token:", e);
+          }
+
+          if (res.data.role === "admin") {
+            navigate("/admin");
+          } else {
+            navigate("/");
+          }
+          setIsLoading(true);
+
+        })
+        .catch((error) => {
+          console.error("Google login failed:", error);
+          console.log("Error response data:", error.response?.data);
+          toast.error(error?.response?.data?.message || "Google login failed");
+          setIsLoading(false);
+        });
+    },
+
+    onError: (error) => {
+      toast.error("Google Login Failed");
+      console.log("Google login error:", error);
+    }
+  });
+
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
-    }
-  }, [user, navigate]);
-
-  async function handleLogin() {
-    if (!email || !password) {
-      toast.error("Please enter both email and password");
-      return;
-    }
-
+  async function login() {
+    console.log("log clicked");
+    console.log("Email:", email);
+    console.log("Password:", password);
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      // AuthProvider handles syncing and setting user in storage
-      // We just need to navigate on success
-      
+      const res = await axios.post(import.meta.env.VITE_BACKEND_URL + "/users/login", {
+        email: email,
+        password: password
+      });
+      console.log("Login response:", res.data);
+      // Log token received from backend for debugging
+      console.log("Token (from response):", res.data.token);
+      toast.success(res.data.message);
 
-      // Determine navigation based on role if available (or default to home)
-      // Since context updates asynchronously, we might rely on the token or just push to home/admin
-      // For now, let's redirect to home. If admin check is needed, we can check localStorage
+      localStorage.setItem("token", res.data.token);
 
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (storedUser && storedUser.role === "admin") {
+      // Backend returns token but not the role directly.
+      // Decode the JWT payload to obtain the role when needed.
+      const token = res.data.token || localStorage.getItem("token");
+      console.log("Token (stored):", token);
+      let role = res.data.role;
+      if (!role && token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          role = payload.role;
+          // Save user object to localStorage
+          localStorage.setItem("user", JSON.stringify(payload));
+        } catch (e) {
+          console.warn("Failed to decode token payload:", e);
+        }
+      }
+
+      if (role === "admin") {
         navigate("/admin");
       } else {
         navigate("/");
       }
-
-      toast.success("Login successful");
 
     } catch (error) {
       console.error("Login failed:", error);
-      toast.error(error.message || "Login failed");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleGoogleLogin() {
-    setIsLoading(true);
-    try {
-      await googleLogin();
-      toast.success("Google Login Successful");
-      // Navigation handled same as normal login
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (storedUser && storedUser.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Google login failed:", error);
-      toast.error("Google Login Failed");
-    } finally {
+      toast.error(error?.response?.data?.message || "Login failed");
       setIsLoading(false);
     }
   }
@@ -131,7 +160,7 @@ export default function LoginPage() {
             className="w-[400px] h-[50px] mb-[20px] rounded-lg border border-blue-300 p-[10px] text-[20px] focus:outline-none focus:ring-2 focus:ring-blue-500 "
           />
           <motion.button
-            onClick={handleLogin}
+            onClick={login}
             disabled={isLoading}
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -156,7 +185,7 @@ export default function LoginPage() {
             )}
           </motion.button>
           <motion.button
-            onClick={handleGoogleLogin}
+            onClick={googleLogin}
             disabled={isLoading}
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
